@@ -41,7 +41,7 @@ async function performTasks(list) {
       if (!checkSubmission(issue.body || issue.title)) {
         throw "Invalid submission"
       }
-      let url = issue.body || issue.title
+      let url = issue.body.match(/(https?:\/\/[^ ]*)/)[1]
       let resp = await fetch(url)
       let articleData = await fetchArticle(resp.url)
       await octokit.issues.createComment({
