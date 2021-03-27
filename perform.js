@@ -1,22 +1,25 @@
-
-let { Octokit } = require('@octokit/rest')
-let fetchArticle = require('./src/fetchArticle')
-let renderToMarkdown = require('./src/renderToMarkdown')
-let fetch = require('node-fetch')
+const { Octokit } = require('@octokit/rest')
+const fetch = require('node-fetch')
+const captureWebsite = require('capture-website');
+const fetchArticle = require('./src/fetchArticle')
+const renderToMarkdown = require('./src/renderToMarkdown')
 
 require('dotenv').config()
 
-let TOKEN = process.env.TOKEN
-let REPOSITORY = process.env.REPOSITORY
-let EVENT = process.env.EVENT
-let FINISH_STATE = process.env.FINISH_STATE || 'open'
-let FETCH_LABEL = process.env.FETCH_LABEL || 'fetch'
-let [OWNER, REPO] = REPOSITORY.split('/')
-let FETCHED_LABEL = 'fetched'
-let ERROR_LABEL = 'error'
+const TOKEN = process.env.TOKEN
+const REPOSITORY = process.env.REPOSITORY
+const EVENT = process.env.EVENT
+const FINISH_STATE = process.env.FINISH_STATE || 'open'
+const FETCH_LABEL = process.env.FETCH_LABEL || 'fetch'
+const CAPTURE_LABEL = process.env.CAPTURE_LABEL || 'capture'
+const [OWNER, REPO] = REPOSITORY.split('/')
+const FETCHED_LABEL = 'fetched'
+const CAPTURED_LABEL = 'captured'
+const ERROR_LABEL = 'error'
 const FETCH_RELATED_LABELS = [FETCH_LABEL, FETCHED_LABEL, ERROR_LABEL]
+const CAPTURE_RELATED_LABELS = [CAPTURE_LABEL, CAPTURED_LABEL]
 
-let octokit = new Octokit({
+const octokit = new Octokit({
   auth: TOKEN
 })
 
@@ -28,15 +31,11 @@ function checkSubmission(body) {
 async function getTasks() {
   if (EVENT) {
     console.log('getting single task')
-    const body = JSON.parse(EVENT)
-    let labels = (body.labels || [body.label]).filter(x => x)
-    if (labels.length === 0) {
-      labels = body.issue.labels || []
-    }
+    const labels = body.issue.labels || []
     const labelNames = labels.map(x => x.name)
     console.log('labels: ' + labelNames)
-    if (labelNames && labelNames.includes(FETCH_LABEL)) {
-      const issue = body.issue
+    const issue = body.issue
+    if (shouldFetch(issue) || shouldCapture(issue)) {
       return [issue]
     }
     return []
@@ -60,6 +59,19 @@ async function performTasks(list) {
         throw "Invalid submission"
       }
       let url = issue.body.match(/(https?:\/\/[^ ]*)/)[1]
+
+      // capture screenshot
+      if (shouldCapture(issue)) {
+        try {
+          await captureScreenShot(issue, url)
+        } catch(error) {
+          console.error(error)
+        }
+      }
+      if (!shouldFetch(issue)) {
+        return
+      }
+
       let resp = await fetch(url)
       let articleData = await fetchArticle(resp.url)
       await octokit.issues.createComment({
@@ -97,11 +109,65 @@ async function performTasks(list) {
   await Promise.all(promises)
 }
 
-function generateNewLabels(existLabels, labels) {
+async function captureScreenShot(issue, url) {
+  /* https://github.com/sindresorhus/capture-website#options */
+  const content = await captureWebsite.base64(url, {
+    inputType: 'url',
+    width: 1280,
+    height: 800,
+    type: 'png',
+    quality: 1,
+    scaleFactor: 2,
+    fullPage: true,
+    defaultBackground: true,
+    timeout: 120,
+    delay: 1,
+    disableAnimations: false,
+    isJavaScriptEnabled: true,
+  })
+  const path = `screenshot/${issue.number}.png`
+  await octokit.repos.createOrUpdateFileContents({
+    owner: OWNER,
+    repo: REPO,
+    path: path,
+    message: `upload ${path}`,
+    content: content,
+  })
+  const image = `https://github.com/${OWNER}/${REPO}/raw/master/${path}`
+  await octokit.issues.createComment({
+    owner: OWNER,
+    repo: REPO,
+    issue_number: issue.number,
+    body: `[screenshot](${image})`
+  })
+  await octokit.issues.update({
+    owner: OWNER,
+    repo: REPO,
+    issue_number: issue.number,
+    state: FINISH_STATE,
+    title: articleData.title,
+    labels: generateNewLabels(issue.labels, [CAPTURED_LABEL], CAPTURE_RELATED_LABELS)
+  })
+}
+
+function generateNewLabels(existLabels, labels, removeLabels) {
+  const f = removeLabels || FETCH_RELATED_LABELS
   const newLabels = (existLabels || []).map(x => x.name)
-    .filter(x => !FETCH_RELATED_LABELS.includes(x))
+    .filter(x => !f.includes(x))
   labels.map(x => newLabels.push(x))
   return newLabels
+}
+
+function shouldFetch(issue) {
+  const labels = issue.labels || []
+  const labelNames = labels.map(x => x.name)
+  return labelNames && (labelNames.includes(FETCH_LABEL)
+}
+
+function shouldCapture(issue) {
+  const labels = issue.labels || []
+  const labelNames = labels.map(x => x.name)
+  return labelNames && (labelNames.includes(CAPTURE_LABEL)
 }
 
 async function perform() {
