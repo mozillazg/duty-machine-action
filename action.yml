@@ -1,8 +1,8 @@
 name: duty-machine-action
 description: 'save web article as issue'
 runs:
-  using: 'docker'
-  image: 'Dockerfile'
+  using: 'node12'
+  main: 'perform.js'
 branding:
-  icon: 'bookmark'  
+  icon: 'bookmark'
   color: 'gray-dark'

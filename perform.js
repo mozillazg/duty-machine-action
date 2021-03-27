@@ -118,6 +118,7 @@ async function performTasks(list) {
 }
 
 async function captureScreenShot(issue, url) {
+  console.info(`start capture screenshot for ${url}`)
   /* https://github.com/sindresorhus/capture-website#options */
   const content = await captureWebsite.base64(url, {
     inputType: 'url',
@@ -141,6 +142,7 @@ async function captureScreenShot(issue, url) {
     message: `upload ${path}`,
     content: content,
   })
+  console.info(`uploaded ${path}`)
   const image = `https://github.com/${OWNER}/${REPO}/raw/master/${path}`
   await octokit.issues.createComment({
     owner: OWNER,
@@ -156,6 +158,7 @@ async function captureScreenShot(issue, url) {
     title: articleData.title,
     labels: generateNewLabels(issue.labels, [CAPTURED_LABEL], CAPTURE_RELATED_LABELS)
   })
+  console.info(`finished capture screenshot for ${url}`)
 }
 
 function generateNewLabels(existLabels, labels, removeLabels) {
