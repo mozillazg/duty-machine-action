@@ -10,7 +10,7 @@ let TOKEN = process.env.TOKEN
 let REPOSITORY = process.env.REPOSITORY
 let EVENT = process.env.EVENT
 let FINISH_STATE = process.env.FINISH_STATE || 'open'
-let FETCH_LABEL = promises.env.FETCH_LABEL || 'fetch'
+let FETCH_LABEL = process.env.FETCH_LABEL || 'fetch'
 let [OWNER, REPO] = REPOSITORY.split('/')
 
 let octokit = new Octokit({
