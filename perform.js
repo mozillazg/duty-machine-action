@@ -29,6 +29,7 @@ async function getTasks() {
     let { data } = await octokit.issues.listForRepo({
       owner: OWNER,
       repo: REPO,
+      labels: 'fetch',
       state: 'open'
     })
     return data
