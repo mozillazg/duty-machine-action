@@ -10,6 +10,7 @@ let TOKEN = process.env.TOKEN
 let REPOSITORY = process.env.REPOSITORY
 let EVENT = process.env.EVENT
 let FINISH_STATE = process.env.FINISH_STATE || 'open'
+let FETCH_LABEL = promises.env.FETCH_LABEL || 'fetch'
 let [OWNER, REPO] = REPOSITORY.split('/')
 
 let octokit = new Octokit({
@@ -24,13 +25,18 @@ function checkSubmission(body) {
 async function getTasks() {
   if (EVENT) {
     console.log('getting single task')
-    return [JSON.parse(EVENT).issue]
+    const body = JSON.parse(EVENT)
+    if (body.labels && body.labels.includes(FETCH_LABEL)) {
+      const issue = body.issue
+      return [issue]
+    }
+    return []
   } else {
     console.log('getting list of tasks')
     let { data } = await octokit.issues.listForRepo({
       owner: OWNER,
       repo: REPO,
-      labels: 'fetch',
+      labels: FETCH_LABEL,
       state: 'open'
     })
     return data
@@ -38,6 +44,7 @@ async function getTasks() {
 }
 
 async function performTasks(list) {
+  console.log('got ' + list.length + ' tasks')
   let promises = list.map(async (issue) => {
     try {
       if (!checkSubmission(issue.body || issue.title)) {
