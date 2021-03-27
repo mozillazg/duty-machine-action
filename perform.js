@@ -12,6 +12,7 @@ let EVENT = process.env.EVENT
 let FINISH_STATE = process.env.FINISH_STATE || 'open'
 let FETCH_LABEL = process.env.FETCH_LABEL || 'fetch'
 let [OWNER, REPO] = REPOSITORY.split('/')
+let FETCHED_LABEL = 'fetched'
 
 let octokit = new Octokit({
   auth: TOKEN
@@ -26,7 +27,9 @@ async function getTasks() {
   if (EVENT) {
     console.log('getting single task')
     const body = JSON.parse(EVENT)
-    if (body.labels && body.labels.includes(FETCH_LABEL)) {
+    const labels = (body.labels || [body.label]).map(x => x.name)
+    console.log('labels: ' + labels)
+    if (labels && labels.includes(FETCH_LABEL)) {
       const issue = body.issue
       return [issue]
     }
@@ -65,7 +68,7 @@ async function performTasks(list) {
         issue_number: issue.number,
         state: FINISH_STATE,
         title: articleData.title,
-        labels: ['fetched']
+        labels: [FETCHED_LABEL]
       })
     } catch(error) {
       await octokit.issues.createComment({
