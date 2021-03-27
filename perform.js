@@ -9,6 +9,7 @@ require('dotenv').config()
 let TOKEN = process.env.TOKEN
 let REPOSITORY = process.env.REPOSITORY
 let EVENT = process.env.EVENT
+let FINISH_STATE = process.env.FINISH_STATE || 'open'
 let [OWNER, REPO] = REPOSITORY.split('/')
 
 let octokit = new Octokit({
@@ -55,7 +56,7 @@ async function performTasks(list) {
         owner: OWNER,
         repo: REPO,
         issue_number: issue.number,
-        state: 'closed',
+        state: FINISH_STATE,
         title: articleData.title,
         labels: ['fetched']
       })
@@ -70,7 +71,7 @@ async function performTasks(list) {
         owner: OWNER,
         repo: REPO,
         issue_number: issue.number,
-        state: 'closed',
+        state: FINISH_STATE,
         labels: ['error']
       })
       throw error
