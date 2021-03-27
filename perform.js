@@ -27,9 +27,13 @@ async function getTasks() {
   if (EVENT) {
     console.log('getting single task')
     const body = JSON.parse(EVENT)
-    const labels = (body.labels || [body.label]).map(x => x.name)
-    console.log('labels: ' + labels)
-    if (labels && labels.includes(FETCH_LABEL)) {
+    let labels = (body.labels || [body.label]).filter(x => x)
+    if (labels.length === 0) {
+      labels = body.issue.labels || []
+    }
+    const labelNames = labels.map(x => x.name)
+    console.log('labels: ' + labelNames)
+    if (labelNames && labelNames.includes(FETCH_LABEL)) {
       const issue = body.issue
       return [issue]
     }
