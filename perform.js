@@ -13,6 +13,8 @@ let FINISH_STATE = process.env.FINISH_STATE || 'open'
 let FETCH_LABEL = process.env.FETCH_LABEL || 'fetch'
 let [OWNER, REPO] = REPOSITORY.split('/')
 let FETCHED_LABEL = 'fetched'
+let ERROR_LABEL = 'error'
+const FETCH_RELATED_LABELS = [FETCH_LABEL, FETCHED_LABEL, ERROR_LABEL]
 
 let octokit = new Octokit({
   auth: TOKEN
@@ -72,7 +74,7 @@ async function performTasks(list) {
         issue_number: issue.number,
         state: FINISH_STATE,
         title: articleData.title,
-        labels: [FETCHED_LABEL]
+        labels: generateNewLabels(issue.labels, [FETCHED_LABEL])
       })
     } catch(error) {
       await octokit.issues.createComment({
@@ -86,13 +88,20 @@ async function performTasks(list) {
         repo: REPO,
         issue_number: issue.number,
         state: FINISH_STATE,
-        labels: ['error']
+        labels: generateNewLabels(issue.labels, [ERROR_LABEL])
       })
       throw error
     }
   })
 
   await Promise.all(promises)
+}
+
+function generateNewLabels(existLabels, labels) {
+  const newLabels = (existLabels || []).map(x => x.name)
+    .filter(x => !FETCH_RELATED_LABELS.includes(x))
+  labels.map(x => newLabels.push(x))
+  return newLabels
 }
 
 async function perform() {
