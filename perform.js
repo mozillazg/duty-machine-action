@@ -31,7 +31,15 @@ function checkSubmission(body) {
 async function getTasks() {
   if (EVENT) {
     console.log('getting single task')
-    const labels = body.issue.labels || []
+    const body = JSON.parse(EVENT)
+    let labels = [body.label].filter(x => x)
+    if (labels.length === 0) {
+      labels = body.issue.labels || []
+    }
+    if (labels.length !== 0) {
+      body.issue.labels = labels
+    }
+    labels = body.issue.labels || []
     const labelNames = labels.map(x => x.name)
     console.log('labels: ' + labelNames)
     const issue = body.issue
@@ -161,13 +169,13 @@ function generateNewLabels(existLabels, labels, removeLabels) {
 function shouldFetch(issue) {
   const labels = issue.labels || []
   const labelNames = labels.map(x => x.name)
-  return labelNames && (labelNames.includes(FETCH_LABEL)
+  return labelNames && (labelNames.includes(FETCH_LABEL))
 }
 
 function shouldCapture(issue) {
   const labels = issue.labels || []
   const labelNames = labels.map(x => x.name)
-  return labelNames && (labelNames.includes(CAPTURE_LABEL)
+  return labelNames && (labelNames.includes(CAPTURE_LABEL))
 }
 
 async function perform() {
