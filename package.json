@@ -26,6 +26,6 @@
     "jsdom": "^16.2.2",
     "moment": "^2.27.0",
     "node-fetch": "^2.6.0",
-    "turndown": "^7.0.0"
+    "turndown": "domchristie/turndown"
   }
 }
