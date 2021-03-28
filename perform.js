@@ -91,13 +91,14 @@ async function performTasks(list) {
         issue_number: issue.number,
         body: renderToMarkdown(articleData)
       })
+      const latestIssue = await getLatestIssue(issue.number)
       await octokit.issues.update({
         owner: OWNER,
         repo: REPO,
         issue_number: issue.number,
         state: FINISH_STATE,
         title: articleData.title,
-        labels: generateNewLabels(issue.labels, [FETCHED_LABEL], FETCH_RELATED_LABELS)
+        labels: generateNewLabels(latestIssue.labels, [FETCHED_LABEL], FETCH_RELATED_LABELS)
       })
     } catch(error) {
       await octokit.issues.createComment({
@@ -106,12 +107,13 @@ async function performTasks(list) {
         issue_number: issue.number,
         body: `错误 ${error.toString()}`
       })
+      const latestIssue = await getLatestIssue(issue.number)
       await octokit.issues.update({
         owner: OWNER,
         repo: REPO,
         issue_number: issue.number,
         state: FINISH_STATE,
-        labels: generateNewLabels(issue.labels, [ERROR_LABEL], FETCH_RELATED_LABELS)
+        labels: generateNewLabels(latestIssue.labels, [ERROR_LABEL], FETCH_RELATED_LABELS)
       })
       throw error
     }
@@ -159,13 +161,26 @@ async function captureScreenShot(issue, url) {
     issue_number: issue.number,
     body: `![screenshot](${image})`
   })
+  const latestIssue = await getLatestIssue(issue.number)
   await octokit.issues.update({
     owner: OWNER,
     repo: REPO,
     issue_number: issue.number,
-    labels: generateNewLabels(issue.labels, [CAPTURED_LABEL], CAPTURE_RELATED_LABELS)
+    labels: generateNewLabels(latestIssue.labels, [CAPTURED_LABEL], CAPTURE_RELATED_LABELS)
   })
   core.info(`finished capture screenshot for ${url}`)
+}
+
+async function getLatestIssue(issueNumber) {
+  const response = await octokit.issues.get({
+    owner: OWNER,
+    repo: REPO,
+    issue_number: issueNumber,
+  })
+  core.info(`latest issue of ${issueNumber} is [response]:\n${JSON.stringify(response, null, 2)}\n`)
+  const latestIssue = response.data
+  core.info(`latest issue of ${issueNumber} is [latestIssue]:\n${JSON.stringify(latestIssue, null, 2)}\n`)
+  return latestIssue
 }
 
 function generateNewLabels(existLabels, labels, removeLabels) {
