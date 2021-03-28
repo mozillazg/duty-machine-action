@@ -156,11 +156,12 @@ async function captureScreenShot(issue, url) {
   })
   core.info(`uploaded ${path}`)
   const image = `https://github.com/${OWNER}/${REPO}/raw/master/${path}`
+  const link = `https://github.com/${OWNER}/${REPO}/blob/master/${path}`
   await octokit.issues.createComment({
     owner: OWNER,
     repo: REPO,
     issue_number: issue.number,
-    body: `![screenshot](${image})`
+    body: `[![screenshot](${image})](${link})`
   })
   const latestIssue = await getLatestIssue(issue.number)
   await octokit.issues.update({
