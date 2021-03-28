@@ -39,6 +39,9 @@
 		"@types/puppeteer": "^5.4.3",
 		"file-url": "^3.0.0",
 		"puppeteer": "^5.3.1",
+		"puppeteer-extra": "^3.1.18",
+		"puppeteer-extra-plugin-adblocker": "^2.11.11",
+		"puppeteer-extra-plugin-stealth": "^2.7.6",
 		"tough-cookie": "^4.0.0"
 	},
 	"devDependencies": {

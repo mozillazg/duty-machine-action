@@ -134,7 +134,7 @@ async function captureScreenShot(issue, url) {
     },
     inputType: 'url',
     width: 1280,
-    height: 800,
+    height: 720,
     type: 'png',
     // quality: 1,
     scaleFactor: 2,
