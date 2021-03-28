@@ -7,6 +7,7 @@ const whichChrome = require('./src/which-chrome')
 
 require('dotenv').config()
 
+const RUN_ID = process.env.GITHUB_RUN_ID || (new Date()).getTime()
 const TOKEN = process.env.TOKEN
 const REPOSITORY = process.env.REPOSITORY
 const EVENT = process.env.EVENT
@@ -141,7 +142,7 @@ async function captureScreenShot(issue, url) {
     disableAnimations: false,
     isJavaScriptEnabled: true,
   })
-  const path = `screenshot/${issue.number}.png`
+  const path = `screenshot/${issue.number}-${RUN_ID}.png`
   await octokit.repos.createOrUpdateFileContents({
     owner: OWNER,
     repo: REPO,
