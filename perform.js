@@ -137,8 +137,8 @@ async function captureScreenShot(issue, url) {
     scaleFactor: 2,
     fullPage: true,
     defaultBackground: true,
-    timeout: 180,
-    delay: 1,
+    timeout: 240,
+    delay: 60,
     disableAnimations: false,
     isJavaScriptEnabled: true,
   })
