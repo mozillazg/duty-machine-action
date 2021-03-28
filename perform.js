@@ -1,4 +1,5 @@
 const { Octokit } = require('@octokit/rest')
+const core = require('@actions/core')
 const fetch = require('node-fetch')
 const captureWebsite = require('capture-website');
 const fetchArticle = require('./src/fetchArticle')
@@ -32,7 +33,7 @@ function checkSubmission(body) {
 
 async function getTasks() {
   if (EVENT) {
-    console.log('getting single task')
+    core.info('getting single task')
     const body = JSON.parse(EVENT)
     let labels = [body.label].filter(x => x)
     if (labels.length === 0) {
@@ -43,14 +44,14 @@ async function getTasks() {
     }
     labels = body.issue.updateLabels || []
     const labelNames = labels.map(x => x.name)
-    console.log('update labels: ' + labelNames)
+    core.info('update labels: ' + labelNames)
     const issue = body.issue
     if (shouldFetch(issue) || shouldCapture(issue)) {
       return [issue]
     }
     return []
   } else {
-    console.log('getting list of tasks')
+    core.info('getting list of tasks')
     let { data } = await octokit.issues.listForRepo({
       owner: OWNER,
       repo: REPO,
@@ -62,7 +63,7 @@ async function getTasks() {
 }
 
 async function performTasks(list) {
-  console.log('got ' + list.length + ' tasks')
+  core.info('got ' + list.length + ' tasks')
   let promises = list.map(async (issue) => {
     try {
       if (!checkSubmission(issue.body || issue.title)) {
@@ -120,10 +121,10 @@ async function performTasks(list) {
 }
 
 async function captureScreenShot(issue, url) {
-  console.info(`start capture screenshot for ${url}`)
+  core.info(`start capture screenshot for ${url}`)
   // Locate Google Chrome executable
   const executablePath = await whichChrome();
-  console.info(`executablePath is ${executablePath}`);
+  core.info(`executablePath is ${executablePath}`);
   /* https://github.com/sindresorhus/capture-website#options */
   const content = await captureWebsite.base64(url, {
     launchOptions: {
@@ -150,7 +151,7 @@ async function captureScreenShot(issue, url) {
     message: `upload ${path}`,
     content: content,
   })
-  console.info(`uploaded ${path}`)
+  core.info(`uploaded ${path}`)
   const image = `https://github.com/${OWNER}/${REPO}/raw/master/${path}`
   await octokit.issues.createComment({
     owner: OWNER,
@@ -164,7 +165,7 @@ async function captureScreenShot(issue, url) {
     issue_number: issue.number,
     labels: generateNewLabels(issue.labels, [CAPTURED_LABEL], CAPTURE_RELATED_LABELS)
   })
-  console.info(`finished capture screenshot for ${url}`)
+  core.info(`finished capture screenshot for ${url}`)
 }
 
 function generateNewLabels(existLabels, labels, removeLabels) {
