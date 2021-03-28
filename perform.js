@@ -3,6 +3,7 @@ const fetch = require('node-fetch')
 const captureWebsite = require('capture-website');
 const fetchArticle = require('./src/fetchArticle')
 const renderToMarkdown = require('./src/renderToMarkdown')
+const whichChrome = require('./src/which-chrome')
 
 require('dotenv').config()
 
@@ -94,7 +95,7 @@ async function performTasks(list) {
         issue_number: issue.number,
         state: FINISH_STATE,
         title: articleData.title,
-        labels: generateNewLabels(issue.labels, [FETCHED_LABEL])
+        labels: generateNewLabels(issue.labels, [FETCHED_LABEL], FETCH_RELATED_LABELS)
       })
     } catch(error) {
       await octokit.issues.createComment({
@@ -108,7 +109,7 @@ async function performTasks(list) {
         repo: REPO,
         issue_number: issue.number,
         state: FINISH_STATE,
-        labels: generateNewLabels(issue.labels, [ERROR_LABEL])
+        labels: generateNewLabels(issue.labels, [ERROR_LABEL], FETCH_RELATED_LABELS)
       })
       throw error
     }
@@ -119,17 +120,23 @@ async function performTasks(list) {
 
 async function captureScreenShot(issue, url) {
   console.info(`start capture screenshot for ${url}`)
+  // Locate Google Chrome executable
+  const executablePath = await whichChrome();
+  console.info(`executablePath is ${executablePath}`);
   /* https://github.com/sindresorhus/capture-website#options */
   const content = await captureWebsite.base64(url, {
+    launchOptions: {
+      executablePath,
+    },
     inputType: 'url',
     width: 1280,
     height: 800,
     type: 'png',
-    quality: 1,
+    // quality: 1,
     scaleFactor: 2,
     fullPage: true,
     defaultBackground: true,
-    timeout: 120,
+    timeout: 180,
     delay: 1,
     disableAnimations: false,
     isJavaScriptEnabled: true,
@@ -148,23 +155,21 @@ async function captureScreenShot(issue, url) {
     owner: OWNER,
     repo: REPO,
     issue_number: issue.number,
-    body: `[screenshot](${image})`
+    body: `![screenshot](${image})`
   })
   await octokit.issues.update({
     owner: OWNER,
     repo: REPO,
     issue_number: issue.number,
-    state: FINISH_STATE,
-    title: articleData.title,
     labels: generateNewLabels(issue.labels, [CAPTURED_LABEL], CAPTURE_RELATED_LABELS)
   })
   console.info(`finished capture screenshot for ${url}`)
 }
 
 function generateNewLabels(existLabels, labels, removeLabels) {
-  const f = removeLabels || FETCH_RELATED_LABELS
+  labels = labels || []
   const newLabels = (existLabels || []).map(x => x.name)
-    .filter(x => !f.includes(x))
+    .filter(x => !removeLabels.includes(x))
   labels.map(x => newLabels.push(x))
   return newLabels
 }
