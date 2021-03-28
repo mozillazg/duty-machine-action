@@ -145,7 +145,8 @@ async function captureScreenShot(issue, url) {
     disableAnimations: false,
     isJavaScriptEnabled: true,
   })
-  const path = `screenshot/${issue.number}-${RUN_ID}.png`
+  const now = new Date()
+  const path = `screenshot/${now.getFullYear()}/${now.getMonth()}/${issue.number}-${RUN_ID}.png`
   await octokit.repos.createOrUpdateFileContents({
     owner: OWNER,
     repo: REPO,
