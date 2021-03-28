@@ -23,7 +23,7 @@
     "@actions/core": "^1.2.6",
     "@octokit/rest": "^17.11.0",
     "article-parser": "^4.2.6",
-    "capture-website": "^v1.4.0",
+    "capture-website": "mozillazg/capture-website",
     "dotenv": "^8.2.0",
     "jsdom": "^16.2.2",
     "moment": "^2.27.0",
