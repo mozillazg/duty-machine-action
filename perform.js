@@ -38,11 +38,11 @@ async function getTasks() {
       labels = body.issue.labels || []
     }
     if (labels.length !== 0) {
-      body.issue.labels = labels
+      body.issue.updateLabels = labels
     }
-    labels = body.issue.labels || []
+    labels = body.issue.updateLabels || []
     const labelNames = labels.map(x => x.name)
-    console.log('labels: ' + labelNames)
+    console.log('update labels: ' + labelNames)
     const issue = body.issue
     if (shouldFetch(issue) || shouldCapture(issue)) {
       return [issue]
@@ -175,13 +175,13 @@ function generateNewLabels(existLabels, labels, removeLabels) {
 }
 
 function shouldFetch(issue) {
-  const labels = issue.labels || []
+  const labels = issue.updateLabels || []
   const labelNames = labels.map(x => x.name)
   return labelNames && (labelNames.includes(FETCH_LABEL))
 }
 
 function shouldCapture(issue) {
-  const labels = issue.labels || []
+  const labels = issue.updateLabels || []
   const labelNames = labels.map(x => x.name)
   return labelNames && (labelNames.includes(CAPTURE_LABEL))
 }
