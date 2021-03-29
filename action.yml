@@ -3,8 +3,20 @@ description: 'save web article as issue'
 runs:
   # using: 'docker'
   # image: 'Dockerfile'
-  using: 'node12'
-  main: 'perform.js'
+  # using: 'node12'
+  # main: 'perform.js'
+  using: "composite"
+  steps:
+    - id: install deps
+      shell: bash
+      run: |
+      sudo apt-get install xvfb
+      sudo rm -rf node_modules
+      npm install
+    - id: run
+      shell: bash
+      run: |
+      xvfb-run --auto-servernum node perform.js
 branding:
   icon: 'bookmark'
   color: 'gray-dark'
