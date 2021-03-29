@@ -73,11 +73,7 @@ async function performTasks(list) {
 
       // capture screenshot
       if (shouldCapture(issue)) {
-        try {
-          await captureScreenShot(issue, url)
-        } catch(error) {
-          console.error(error)
-        }
+        await captureScreenShot(issue, url)
       }
       if (!shouldFetch(issue)) {
         return
