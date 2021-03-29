@@ -10,6 +10,7 @@ runs:
     - id: install-system-deps
       shell: bash
       run: |
+        set -xe
         echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | sudo debconf-set-selections
         echo ttf-mscorefonts-installer msttcorefonts/present-mscorefonts-eula note | sudo debconf-set-selections
         sudo apt-get install -y language-pack-en ttf-mscorefonts-installer
@@ -30,11 +31,13 @@ runs:
     - id: install-node-deps
       shell: bash
       run: |
+        set -xe
         cd ${{ github.action_path }}
         npm install
     - id: run
       shell: bash
       run: |
+        set -xe
         cd ${{ github.action_path }}
         # Xvfb -ac :99 -screen 0 1280x1024x16 > /dev/null 2>&1 &
         export DISPLAY=":99.0"
