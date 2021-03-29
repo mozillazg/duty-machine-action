@@ -7,7 +7,7 @@ runs:
   # main: 'perform.js'
   using: "composite"
   steps:
-    - id: install deps
+    - id: install-deps
       shell: bash
       run: |
         sudo apt-get install xvfb
