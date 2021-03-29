@@ -10,13 +10,13 @@ runs:
     - id: install deps
       shell: bash
       run: |
-      sudo apt-get install xvfb
-      sudo rm -rf node_modules
-      npm install
+        sudo apt-get install xvfb
+        sudo rm -rf node_modules
+        npm install
     - id: run
       shell: bash
       run: |
-      xvfb-run --auto-servernum node perform.js
+        xvfb-run --auto-servernum node perform.js
 branding:
   icon: 'bookmark'
   color: 'gray-dark'
