@@ -126,7 +126,7 @@ async function captureScreenShot(issue, url) {
   /* https://github.com/sindresorhus/capture-website#options */
   const content = await captureWebsite.base64(url, {
     launchOptions: {
-      executablePath,
+      // executablePath,
     },
     inputType: 'url',
     width: 1280,
