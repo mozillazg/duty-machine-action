@@ -11,11 +11,13 @@ runs:
       shell: bash
       run: |
         sudo apt-get install xvfb
+        cd ${{ github.action_path }}
         sudo rm -rf node_modules
         npm install
     - id: run
       shell: bash
       run: |
+        cd ${{ github.action_path }}
         xvfb-run --auto-servernum node perform.js
 branding:
   icon: 'bookmark'
