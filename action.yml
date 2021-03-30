@@ -27,7 +27,7 @@ runs:
           ttf-wqy-microhei ttf-wqy-zenhei wget x11-apps x11-xkb-utils x11vnc \
           xdg-utils xfonts-100dpi xfonts-75dpi xfonts-cyrillic \
           xfonts-scalable xvfb
-        sudo fc-cache -vr
+        sudo fc-cache -fv
     - id: install-node-deps
       shell: bash
       run: |
