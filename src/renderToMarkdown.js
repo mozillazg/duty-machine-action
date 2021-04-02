@@ -1,7 +1,9 @@
 let moment = require('moment')
 let TurndownService = require('turndown')
 
-let turndownService = new TurndownService()
+let turndownService = new TurndownService({
+  codeBlockStyle: 'fenced'
+})
 
 function strip(str) {
   return str.replace(/(^\s*|\s*$)/g, '')
