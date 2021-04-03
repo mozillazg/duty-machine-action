@@ -103,3 +103,24 @@ function generateClearPreBlock (node) {
 function repeat (character, count) {
   return Array(count + 1).join(character)
 }
+
+function cleanAttribute (attribute) {
+  return attribute ? attribute.replace(/(\n+\s*)+/g, '\n') : ''
+}
+
+turndownService.addRule('improve-inline-link', {
+  filter: function (node, options) {
+    return (
+      options.linkStyle === 'inlined' &&
+      node.nodeName === 'A' &&
+      node.getAttribute('href')
+    )
+  },
+
+  replacement: function (content, node) {
+    var href = node.getAttribute('href')
+    var title = cleanAttribute(node.getAttribute('title'))
+    if (title) title = ' "' + title + '"'
+    return '[' + content.trim() + '](' + href + title + ')'
+  }
+})
