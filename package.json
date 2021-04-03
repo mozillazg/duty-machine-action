@@ -4,11 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test-website": "node test.js test-website",
-    "test-all-websites": "node test.js test-all-websites",
-    "test-website-markdown": "node test.js test-website-markdown",
-    "test-url-markdown": "node test.js test-url-markdown",
-    "determine-website": "node test.js determine-website"
+    "test-website": "DEBUG=*:* node test.js test-website",
+    "test-all-websites": "DEBUG=*:* node test.js test-all-websites",
+    "test-website-markdown": "DEBUG=*:* node test.js test-website-markdown",
+    "test-url-markdown": "DEBUG=*:* node test.js test-url-markdown",
+    "determine-website": "DEBUG=*:* node test.js determine-website"
   },
   "repository": {
     "type": "git",
@@ -23,7 +23,7 @@
   "dependencies": {
     "@actions/core": "^1.2.6",
     "@octokit/rest": "^17.11.0",
-    "article-parser": "^4.2.6",
+    "article-parser": "mozillazg/article-parser",
     "capture-website": "mozillazg/capture-website",
     "dotenv": "^8.2.0",
     "jsdom": "^16.2.2",
