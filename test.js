@@ -39,6 +39,9 @@ async function assertFetch(url) {
         console.log(renderToMarkdown(await fetchArticle(sample)))
       })
       break
+    case 'test-url-markdown':
+      console.log(renderToMarkdown(await fetchArticle(process.argv[3])))
+      break
     case 'determine-website':
       let url = process.argv[3]
       console.log(determineWebsite(url))
