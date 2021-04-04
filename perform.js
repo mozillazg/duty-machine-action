@@ -124,7 +124,7 @@ async function captureScreenShot(issue, url) {
   const executablePath = await whichChrome();
   core.info(`executablePath is ${executablePath}`);
   /* https://github.com/sindresorhus/capture-website#options */
-  const content = await captureWebsite.base64(url, {
+  const [content, pdfContent] = await captureWebsite.base64(url, {
     launchOptions: {
       // executablePath,
     },
@@ -140,9 +140,11 @@ async function captureScreenShot(issue, url) {
     delay: 60,
     disableAnimations: false,
     isJavaScriptEnabled: true,
+    generatePDF: true,
   })
   const now = new Date()
   const path = `screenshot/${now.getFullYear()}/${now.getMonth()}/${issue.number}-${RUN_ID}.png`
+  const pdfPath = `${path}.pdf`
   await octokit.repos.createOrUpdateFileContents({
     owner: OWNER,
     repo: REPO,
@@ -151,13 +153,30 @@ async function captureScreenShot(issue, url) {
     content: content,
   })
   core.info(`uploaded ${path}`)
+  // pdf
+  await octokit.repos.createOrUpdateFileContents({
+    owner: OWNER,
+    repo: REPO,
+    path: pdfPath,
+    message: `upload ${pdfPath}`,
+    content: pdfContent,
+  })
+  core.info(`uploaded ${pdfPath}`)
   const image = `https://github.com/${OWNER}/${REPO}/raw/master/${path}`
   const link = `https://github.com/${OWNER}/${REPO}/blob/master/${path}`
+  const pdfLink = `https://github.com/${OWNER}/${REPO}/blob/master/${pdfPath}`
   await octokit.issues.createComment({
     owner: OWNER,
     repo: REPO,
     issue_number: issue.number,
     body: `[![screenshot](${image})](${link})`
+  })
+  // pdf
+  await octokit.issues.createComment({
+    owner: OWNER,
+    repo: REPO,
+    issue_number: issue.number,
+    body: `[PDF](${pdfLink})`
   })
   const latestIssue = await getLatestIssue(issue.number)
   await octokit.issues.update({
