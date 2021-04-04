@@ -58,9 +58,20 @@ module.exports = function({title, author, publishTime, dom}) {
   }
 }
 
+function getCodeLanguageFromAttr(attr) {
+  var language = (attr.match(/language-(\S+)/) || [null, ''])[1]
+  if (language === '') {
+    language = (attr.match(/highlight-source-(\S+)/) || [null, ''])[1]
+  }
+  return language
+}
+
 function fencedCodeBlockReplacement(content, node, options) {
   var className = node.firstChild.getAttribute('class') || ''
-  var language = (className.match(/language-(\S+)/) || [null, ''])[1]
+  var language = getCodeLanguageFromAttr(className)
+  if (language === '') {
+    language = getCodeLanguageFromAttr(node.getAttribute('class') || '')
+  }
   var code = node.firstChild.textContent
 
   var fenceChar = options.fence.charAt(0)
@@ -94,6 +105,12 @@ function indentedCodeBlockReplacement (content, node, options) {
 function generateClearPreBlock (node) {
   const document = new JSDOM().window.document;
   const preBlock = document.createElement('pre')
+  const oldClassAttr = node.getAttribute('class') || '';
+  if (oldClassAttr !== '') {
+    preBlock.setAttribute('class', oldClassAttr)
+  } else if (node.parentNode) {
+    preBlock.setAttribute('class', node.parentNode.getAttribute('class') || '')
+  }
   const codeBlock = document.createElement('code')
   codeBlock.appendChild(document.createTextNode(node.textContent))
   preBlock.appendChild(codeBlock);
