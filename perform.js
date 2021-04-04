@@ -15,12 +15,13 @@ const EVENT = process.env.EVENT
 const FINISH_STATE = process.env.FINISH_STATE || 'open'
 const FETCH_LABEL = process.env.FETCH_LABEL || 'fetch'
 const CAPTURE_LABEL = process.env.CAPTURE_LABEL || 'capture'
+const CAPTURE_PDF_LABEL = process.env.CAPTURE_PDF_LABEL || 'capture-pdf'
 const [OWNER, REPO] = REPOSITORY.split('/')
 const FETCHED_LABEL = 'fetched'
 const CAPTURED_LABEL = 'captured'
 const ERROR_LABEL = 'error'
 const FETCH_RELATED_LABELS = [FETCH_LABEL, FETCHED_LABEL, ERROR_LABEL]
-const CAPTURE_RELATED_LABELS = [CAPTURE_LABEL, CAPTURED_LABEL]
+const CAPTURE_RELATED_LABELS = [CAPTURE_LABEL, CAPTURED_LABEL, CAPTURE_PDF_LABEL]
 
 const octokit = new Octokit({
   auth: TOKEN
@@ -145,39 +146,44 @@ async function captureScreenShot(issue, url) {
   const now = new Date()
   const path = `screenshot/${now.getFullYear()}/${now.getMonth()}/${issue.number}-${RUN_ID}.png`
   const pdfPath = `${path}.pdf`
-  await octokit.repos.createOrUpdateFileContents({
-    owner: OWNER,
-    repo: REPO,
-    path: path,
-    message: `upload ${path}`,
-    content: content,
-  })
-  core.info(`uploaded ${path}`)
+  if (shouldCaptureScreenShot(issue)) {
+    await octokit.repos.createOrUpdateFileContents({
+      owner: OWNER,
+      repo: REPO,
+      path: path,
+      message: `upload ${path}`,
+      content: content,
+    })
+    core.info(`uploaded ${path}`)
+    const image = `https://github.com/${OWNER}/${REPO}/raw/master/${path}`
+    const link = `https://github.com/${OWNER}/${REPO}/blob/master/${path}`
+    await octokit.issues.createComment({
+      owner: OWNER,
+      repo: REPO,
+      issue_number: issue.number,
+      body: `[![screenshot](${image})](${link})`
+    })
+  }
+
   // pdf
-  await octokit.repos.createOrUpdateFileContents({
-    owner: OWNER,
-    repo: REPO,
-    path: pdfPath,
-    message: `upload ${pdfPath}`,
-    content: pdfContent,
-  })
-  core.info(`uploaded ${pdfPath}`)
-  const image = `https://github.com/${OWNER}/${REPO}/raw/master/${path}`
-  const link = `https://github.com/${OWNER}/${REPO}/blob/master/${path}`
-  const pdfLink = `https://github.com/${OWNER}/${REPO}/blob/master/${pdfPath}`
-  await octokit.issues.createComment({
-    owner: OWNER,
-    repo: REPO,
-    issue_number: issue.number,
-    body: `[![screenshot](${image})](${link})`
-  })
-  // pdf
-  await octokit.issues.createComment({
-    owner: OWNER,
-    repo: REPO,
-    issue_number: issue.number,
-    body: `[PDF](${pdfLink})`
-  })
+  if (shouldCapturePDF(issue)) {
+    await octokit.repos.createOrUpdateFileContents({
+      owner: OWNER,
+      repo: REPO,
+      path: pdfPath,
+      message: `upload ${pdfPath}`,
+      content: pdfContent,
+    })
+    core.info(`uploaded ${pdfPath}`)
+    const pdfLink = `https://github.com/${OWNER}/${REPO}/blob/master/${pdfPath}`
+    await octokit.issues.createComment({
+      owner: OWNER,
+      repo: REPO,
+      issue_number: issue.number,
+      body: `[PDF](${pdfLink})`
+    })
+  }
+
   const latestIssue = await getLatestIssue(issue.number)
   await octokit.issues.update({
     owner: OWNER,
@@ -217,7 +223,19 @@ function shouldFetch(issue) {
 function shouldCapture(issue) {
   const labels = issue.updateLabels || []
   const labelNames = labels.map(x => x.name)
+  return labelNames && (labelNames.includes(CAPTURE_LABEL) || labelNames.includes(CAPTURE_PDF_LABEL))
+}
+
+function shouldCaptureScreenShot(issue) {
+  const labels = issue.updateLabels || []
+  const labelNames = labels.map(x => x.name)
   return labelNames && (labelNames.includes(CAPTURE_LABEL))
+}
+
+function shouldCapturePDF(issue) {
+  const labels = issue.updateLabels || []
+  const labelNames = labels.map(x => x.name)
+  return labelNames && (labelNames.includes(CAPTURE_PDF_LABEL))
 }
 
 async function perform() {
