@@ -27,7 +27,7 @@
     "capture-website": "mozillazg/capture-website",
     "dotenv": "^8.2.0",
     "jsdom": "^16.2.2",
-    "moment": "^2.27.0",
+    "moment": "^2.29.2",
     "node-fetch": "^2.6.0",
     "string-comparision": "Rabbitzzc/js-string-comparision",
     "turndown": "domchristie/turndown"
