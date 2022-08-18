@@ -21,7 +21,7 @@
   },
   "homepage": "https://github.com/duty-machine/duty-machine-action#readme",
   "dependencies": {
-    "@actions/core": "^1.2.6",
+    "@actions/core": "^1.9.1",
     "@octokit/rest": "^17.11.0",
     "article-parser": "mozillazg/article-parser",
     "capture-website": "mozillazg/capture-website",
